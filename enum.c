@@ -3,6 +3,7 @@
 #include <time.h>
 #include <math.h>
 #include <string.h>
+#include "Color.h"
 #define CHECK 1000000000
 
 // Structures
@@ -27,6 +28,20 @@ typedef struct bar
   struct bar *prev;
 } bar;
 
+
+static void swapVals(int* a, int * b)
+{
+    int c = *a;
+    int d = *b;
+    int temp;
+
+    temp = c;
+    c = d;
+    d = temp;
+
+    *a = c;
+    *b = d;
+}
 //
 // Global variables
 //
@@ -335,12 +350,6 @@ void setLine(vertex **vs, int currNum, int *perm)
           v2->vals[0] = v2->routeNum;
           v2->vals[1] = tempPerm[k];
 
-          char* s = printVertex(v1);
-          printf("v1 is %s\n", s);
-          free(s);
-          s = printVertex(v2);
-          printf("v2 is %s\n", s);
-          free(s);
           kValue = tempPerm[k];
           break;
         }
@@ -461,14 +470,11 @@ void findAllChildren(int cleanLevel)
             b.right = lowerleft->right;
             b.next = b.prev = NULL;
             b.activeBar = activeBar;
-            char *s = printVertex(b.activeBar);
-            printf("%s\n", s);
-            free(s);
-
+            
             //printf("Left: %d %d\nRight:%d %d\n:Active Bar %d %d\n", b.left->routeNum, b.left->vals[1], b.right->routeNum, b.right->vals[1], b.activeBar->routeNum, b.activeBar->vals[1]);
 
             push(&b);
-
+            //swapVals(&(lowerleft->right->up->vals[1]), &(lowerleft->up->vals[1]));
             rightswap(lowerleft, lowerleft->right);
 
             activeBar = lowerleft; // Update of active bar
@@ -499,30 +505,30 @@ void findAllChildren(int cleanLevel)
           //printf("Left: %d %d\nRight:%d %d\n:Active Bar %d %d\n", b.left->routeNum, b.left->vals[1], b.right->routeNum, b.right->vals[1], b.activeBar->routeNum, b.activeBar->vals[1]);
 
           push(&b);
-          char *s = printVertex(lowerleft);
-          printf("Lower Left\n%s\n\n", s);
-          free(s);
-          s = printVertex(lowerleft->right);
-          printf("Lower left->righ\n%s\n\n", s);
-          free(s);
-          count++;
-          printf("Right Swapping\n\n");
+          //char *s = printVertex(lowerleft);
+          //printf("Lower Left\n%s\n\n", s);
+          //free(s);
+          //s = printVertex(lowerleft->right);
+          //printf("Lower left->righ\n%s\n\n", s);
+          //free(s);
+          //count++;
+          //printf("Right Swapping\n\n");
 
-          s = printVertex(lowerleft->up);
-          printf("Up of lower left is %s\n", s);
-          free(s);
+          //s = printVertex(lowerleft->up);
+          //printf("Up of lower left is %s\n", s);
+          //free(s);
 
-          s = printVertex(lowerleft->right->up);
-          printf("up of lowerleft->right is %s\n", s);
-          free(s);
+          //s = printVertex(lowerleft->right->up);
+          //printf("up of lowerleft->right is %s\n", s);
+          //free(s);
 
+          //swapVals(&(lowerleft->right->up->vals[1]), &(lowerleft->up->vals[1]));
           rightswap(lowerleft, lowerleft->right);
-          printf("Done swapping\n\n");
 
           activeBar = lowerleft; // Update of active bar
-          s = printVertex(activeBar);
-          printf("%s\n", s);
-          free(s);
+          //s = printVertex(activeBar);
+          //printf("%s\n", s);
+          //free(s);
           count++; // Count up
 
           depth++;
@@ -581,9 +587,10 @@ void rightswap(vertex *left, vertex *right)
   right->up = h;
   h->down = right;
 
-  int temp = b->vals[1];
-  b->vals[1] = d->vals[1];
-  d->vals[1] = temp;
+
+  //TEST ME: IF I REMOVE THESE 2 LINES DO I GENERATE MORE UNIQUE CHILDREN?
+  left->line = left->line + 1;
+  right->line = right->line + 1;
 }
 
 void leftswap(vertex *left, vertex *right)
@@ -619,9 +626,10 @@ void leftswap(vertex *left, vertex *right)
   left->down = g;
   g->up = left;
 
-  int temp = c->vals[1];
-  c->vals[1] = a->vals[1];
-  a->vals[1] = temp;
+  //TEST ME: IF I REMOVE THESE 2 LINES DO I GENERATE MORE UNIQUE CHILDREN?
+
+  left->line = left->line - 1;
+  right->line = right->line - 1;
 }
 
 /*
@@ -752,19 +760,19 @@ void print()
     // 2nd: Print phase.
     for (i = 1; i <= n - 1; i++)
     {
-      printf("|\n|");
+      //printf("|");
       if (current[i]->right == current[i + 1])
       {
-        printf("[%d %d]", current[i]->routeNum, current[i]->vals[1]);
+        printf(GREEN "[%d %d]" COLOR_RESET, current[i]->routeNum, current[i]->vals[1]);
         wasPrinted[i] = 1;
         wasPrinted[i + 1] = 1;
       }
       else
       {
-        printf("    ");
+        printf("[0 0]");
       }
     }
-    printf("|\n");
+    printf("\n");
 
     // 3rd: Check final or not.
     for (i = 1; i <= n; i++)

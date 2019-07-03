@@ -24,7 +24,7 @@ LIB:
 ladder: makeladder
 
 makeladder: all
-	$(CC) $(CFLAGS) enum.c -o bin/ladder
+	$(CC) $(CFLAGS) -Iinclude enum.c -o bin/ladder
 
 clean:
 	if [ -d "bin" ]; then rm -rf ./bin/; fi;
