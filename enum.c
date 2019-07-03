@@ -306,7 +306,6 @@ void setLine(vertex **vs, int currNum, int *perm)
     }
   }
   colNumbers[countCols] = colNum;
-  printf("Num Rows is %d rowNum is %d\n", numRows, rowNum);
 
   count = 0;
 
@@ -330,8 +329,18 @@ void setLine(vertex **vs, int currNum, int *perm)
       {
         if (tempPerm[k] < v1->routeNum)
         {
+          v1->vals[0] = v1->routeNum;
           v1->vals[1] = tempPerm[k];
+
+          v2->vals[0] = v2->routeNum;
           v2->vals[1] = tempPerm[k];
+
+          char* s = printVertex(v1);
+          printf("v1 is %s\n", s);
+          free(s);
+          s = printVertex(v2);
+          printf("v2 is %s\n", s);
+          free(s);
           kValue = tempPerm[k];
           break;
         }
@@ -425,11 +434,6 @@ void findAllChildren(int cleanLevel)
     }
     // We have just found the turn bar of route i.
 
-    printf("Here Check\n");
-    /* char *s = printVertex(currVertex);
-    printf("%s\n", s);
-    free(s);*/
-
     while (currVertex->line != i)
     {
 
@@ -437,6 +441,7 @@ void findAllChildren(int cleanLevel)
 
       if (lowerleft->right == NULL)
       {
+        currVertex = currVertex->right;
         currVertex = currVertex->down;
         continue; // increment & continue (skip recursive call)
       }
@@ -456,6 +461,9 @@ void findAllChildren(int cleanLevel)
             b.right = lowerleft->right;
             b.next = b.prev = NULL;
             b.activeBar = activeBar;
+            char *s = printVertex(b.activeBar);
+            printf("%s\n", s);
+            free(s);
 
             //printf("Left: %d %d\nRight:%d %d\n:Active Bar %d %d\n", b.left->routeNum, b.left->vals[1], b.right->routeNum, b.right->vals[1], b.activeBar->routeNum, b.activeBar->vals[1]);
 
@@ -487,14 +495,35 @@ void findAllChildren(int cleanLevel)
           b.right = lowerleft->right;
           b.next = b.prev = NULL;
           b.activeBar = activeBar;
+
           //printf("Left: %d %d\nRight:%d %d\n:Active Bar %d %d\n", b.left->routeNum, b.left->vals[1], b.right->routeNum, b.right->vals[1], b.activeBar->routeNum, b.activeBar->vals[1]);
 
           push(&b);
+          char *s = printVertex(lowerleft);
+          printf("Lower Left\n%s\n\n", s);
+          free(s);
+          s = printVertex(lowerleft->right);
+          printf("Lower left->righ\n%s\n\n", s);
+          free(s);
+          count++;
+          printf("Right Swapping\n\n");
+
+          s = printVertex(lowerleft->up);
+          printf("Up of lower left is %s\n", s);
+          free(s);
+
+          s = printVertex(lowerleft->right->up);
+          printf("up of lowerleft->right is %s\n", s);
+          free(s);
 
           rightswap(lowerleft, lowerleft->right);
+          printf("Done swapping\n\n");
 
           activeBar = lowerleft; // Update of active bar
-          count++;               // Count up
+          s = printVertex(activeBar);
+          printf("%s\n", s);
+          free(s);
+          count++; // Count up
 
           depth++;
 
@@ -753,9 +782,11 @@ void print()
 char *printVertex(void *v)
 {
   char *s = calloc(100000, sizeof(char));
+  strcpy(s, "VERTEX:\n");
   if (v == NULL)
   {
     strcat(s, "Vertex is NULL\n");
+    //printf("Why ! %s\n", s);
     return s;
   }
 
@@ -766,25 +797,22 @@ char *printVertex(void *v)
   sprintf(temp, "%d", vv->routeNum);
   strcat(s, temp);
   strcat(s, "\n");
-  strcpy(temp, "\0");
+  //strcpy(temp, "\0");
   sprintf(temp, "%d", vv->line);
   strcat(s, "Line Number:");
   strcat(s, temp);
   strcat(s, "\n");
-  strcpy(temp, "\0");
+  //strcpy(temp, "\0");
 
   sprintf(temp, "%d", vv->vals[0]);
   strcat(s, "Values:");
   strcat(s, temp);
   strcat(s, " ");
-  strcpy(temp, "\0");
+  //strcpy(temp, "\0");
   sprintf(temp, "%d", vv->vals[1]);
   strcat(s, temp);
   strcat(s, "\n");
-  strcpy(s, "\0");
-
-  printf("Here Here\n");
-
+  //strcpy(s, "\0");
 
   /*char *down = printVertex(vv->down);
   char *up = printVertex(vv->up);
@@ -809,6 +837,8 @@ char *printVertex(void *v)
   free(down);
   free(left);
   free(right);*/
+  //printf("Why ! %s\n", s);
+
   return s;
 }
 
