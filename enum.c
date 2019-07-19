@@ -28,19 +28,18 @@ typedef struct bar
   struct bar *prev;
 } bar;
 
-
-static void swapVals(int* a, int * b)
+static void swapVals(int *a, int *b)
 {
-    int c = *a;
-    int d = *b;
-    int temp;
+  int c = *a;
+  int d = *b;
+  int temp;
 
-    temp = c;
-    c = d;
-    d = temp;
+  temp = c;
+  c = d;
+  d = temp;
 
-    *a = c;
-    *b = d;
+  *a = c;
+  *b = d;
 }
 //
 // Global variables
@@ -64,6 +63,8 @@ bar *tail = NULL;
 
 double count = 0;
 
+int ladderCount = 1;
+
 int withPrint = 0;
 
 //
@@ -75,6 +76,7 @@ void simplePrint();
 inline void makeRoot();
 void setLine(vertex **vs, int currNum, int *perm);
 int *resizePerm(int *perm, int kValue, int size);
+int getIndex(int *perm, int n, int size);
 
 void findAllChildren(int);
 void leftswap(vertex *, vertex *);
@@ -187,15 +189,15 @@ void simplePrint()
   for (i = n; i >= 1; i--)
   {
     curr = &upper[i];
-    printf("%d: ", i);
+    //printf("%d: ", i);
     while (curr != NULL)
     {
-      printf("%d ", curr->line);
+      //printf("%d ", curr->line);
       curr = curr->down;
     }
-    printf("\n");
+    //printf("\n");
   }
-  printf("\n");
+  //printf("\n");
 }
 
 /*
@@ -272,10 +274,10 @@ void makeRoot()
     }
 
     startLine = 1;
-    printf("\n");
+    //printf("\n");
   }
 
-  printf("\n\n");
+  //printf("\n\n");
 }
 
 void setLine(vertex **vs, int currNum, int *perm)
@@ -285,6 +287,7 @@ void setLine(vertex **vs, int currNum, int *perm)
   int numVs = countOne;
   int size = n;
 
+  //add all verticies with same route number to one row of vss.
   vertex *vss[1000][1000];
 
   int rowNum = 0;
@@ -293,6 +296,8 @@ void setLine(vertex **vs, int currNum, int *perm)
 
   int colNumbers[10000];
   int countCols = 0;
+
+  //get each vertex
   for (int i = 0; i < numVs; i++)
   {
     vertex *v = vs[i];
@@ -303,6 +308,8 @@ void setLine(vertex **vs, int currNum, int *perm)
       colNum++;
       continue;
     }
+
+    //compare current vertex, v, with previous vertex. If same route number then same row
     vertex *prevVertex = vs[i - 1];
     if (prevVertex->routeNum == v->routeNum)
     {
@@ -340,7 +347,7 @@ void setLine(vertex **vs, int currNum, int *perm)
     {
       vertex *v1 = vss[i][j];
       vertex *v2 = vss[i][j + 1];
-      for (int k = 0; k < size; k++)
+      for (int k = getIndex(tempPerm, v1->routeNum, size); k < size; k++)
       {
         if (tempPerm[k] < v1->routeNum)
         {
@@ -376,6 +383,17 @@ int *resizePerm(int *perm, int kValue, int size)
   return newPerm;
 }
 
+int getIndex(int *perm, int n, int size)
+{
+  for (int i = 0; i < size; i++)
+  {
+    if (perm[i] == n)
+    {
+      return i;
+    }
+  }
+}
+
 void insertBar(vertex *upperleft, vertex *lowerleft, vertex *upperright,
                vertex *lowerright, vertex *leftend, vertex *rightend)
 {
@@ -405,22 +423,20 @@ void findAllChildren(int cleanLevel)
   int i, state, route, currCleanLevel = cleanLevel;
   bar b, *b2;
 
+
   // Omit for efficiency @ 8th.Apr.2009.
   if (withPrint == 1)
   {
-    //printf("%.0f-th amida, cleanLv = %d:\n",count,cleanLevel);
-    printf("%.0f-th amida, depth = %d\n", count, depth);
+    //printf("%.0f-th amida, depth = %d\n", count, depth);
+    printf(RED "Clean Level:%d\n" COLOR_RESET, cleanLevel);
+    printf(YELLOW "Level %d\n" COLOR_RESET, depth);
     print(); // Count & Print
   }
 
   // Turn bar children
   for (i = n; i >= currCleanLevel - 1; i--)
   {
-    // find turn bar for route of i.
-    // state = 0: go to lowerleft
-    // state = 1: stop state
 
-    // If cleanLv = 1 then, we have error case: i = 0!.
     if (i == 0)
       continue;
 
@@ -470,11 +486,9 @@ void findAllChildren(int cleanLevel)
             b.right = lowerleft->right;
             b.next = b.prev = NULL;
             b.activeBar = activeBar;
-            
-            //printf("Left: %d %d\nRight:%d %d\n:Active Bar %d %d\n", b.left->routeNum, b.left->vals[1], b.right->routeNum, b.right->vals[1], b.activeBar->routeNum, b.activeBar->vals[1]);
 
             push(&b);
-            //swapVals(&(lowerleft->right->up->vals[1]), &(lowerleft->up->vals[1]));
+            swapVals(&(lowerleft->right->up->vals[1]), &(lowerleft->up->vals[1]));
             rightswap(lowerleft, lowerleft->right);
 
             activeBar = lowerleft; // Update of active bar
@@ -483,6 +497,7 @@ void findAllChildren(int cleanLevel)
             depth++;
 
             // Recursive call
+
             findAllChildren(route + 1);
 
             depth--;
@@ -490,7 +505,9 @@ void findAllChildren(int cleanLevel)
             b2 = pop();
 
             leftswap(b2->left, b2->right); // Return to the parent
-            activeBar = b2->activeBar;     // Return to the parent
+            swapVals(&(lowerleft->right->up->vals[1]), &(lowerleft->up->vals[1]));
+
+            activeBar = b2->activeBar; // Return to the parent
           }
         }
         else
@@ -502,46 +519,29 @@ void findAllChildren(int cleanLevel)
           b.next = b.prev = NULL;
           b.activeBar = activeBar;
 
-          //printf("Left: %d %d\nRight:%d %d\n:Active Bar %d %d\n", b.left->routeNum, b.left->vals[1], b.right->routeNum, b.right->vals[1], b.activeBar->routeNum, b.activeBar->vals[1]);
-
           push(&b);
-          //char *s = printVertex(lowerleft);
-          //printf("Lower Left\n%s\n\n", s);
-          //free(s);
-          //s = printVertex(lowerleft->right);
-          //printf("Lower left->righ\n%s\n\n", s);
-          //free(s);
-          //count++;
-          //printf("Right Swapping\n\n");
 
-          //s = printVertex(lowerleft->up);
-          //printf("Up of lower left is %s\n", s);
-          //free(s);
-
-          //s = printVertex(lowerleft->right->up);
-          //printf("up of lowerleft->right is %s\n", s);
-          //free(s);
-
-          //swapVals(&(lowerleft->right->up->vals[1]), &(lowerleft->up->vals[1]));
+          swapVals(&(lowerleft->right->up->vals[1]), &(lowerleft->up->vals[1]));
           rightswap(lowerleft, lowerleft->right);
 
           activeBar = lowerleft; // Update of active bar
-          //s = printVertex(activeBar);
-          //printf("%s\n", s);
-          //free(s);
+
           count++; // Count up
 
           depth++;
 
           // Recursive call
+
           findAllChildren(route + 1);
 
           depth--;
 
           b2 = pop();
 
-          leftswap(b2->left, b2->right); // Return to the parent
-          activeBar = b2->activeBar;     // Return to the parent
+          leftswap(b2->left, b2->right);
+          swapVals(&(lowerleft->right->up->vals[1]), &(lowerleft->up->vals[1]));
+          // Return to the parent
+          activeBar = b2->activeBar; // Return to the parent
         }
       }
 
@@ -586,7 +586,6 @@ void rightswap(vertex *left, vertex *right)
   right->down = d;
   right->up = h;
   h->down = right;
-
 
   //TEST ME: IF I REMOVE THESE 2 LINES DO I GENERATE MORE UNIQUE CHILDREN?
   left->line = left->line + 1;
@@ -720,6 +719,8 @@ bar *pop()
 */
 void print()
 {
+  printf("Ladder Number:%d\n", ladderCount);
+  ladderCount++;
   vertex **current;
   int i, j;
   int wasPrinted[n + 1]; // 0: not printed in the previous loop.
@@ -763,13 +764,14 @@ void print()
       //printf("|");
       if (current[i]->right == current[i + 1])
       {
-        printf(GREEN "[%d %d]" COLOR_RESET, current[i]->routeNum, current[i]->vals[1]);
+        //print the values in green, then reset
+        printf(GREEN "[%d %d] " COLOR_RESET, current[i]->routeNum, current[i]->vals[1]);
         wasPrinted[i] = 1;
         wasPrinted[i + 1] = 1;
       }
       else
       {
-        printf("[0 0]");
+        printf("[0 0] ");
       }
     }
     printf("\n");
